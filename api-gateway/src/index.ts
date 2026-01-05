@@ -32,6 +32,7 @@ const securityMiddleware = (requiredRole?: string) => {
         try {
             const decoded: any = jwt.verify(token, JWT_SECRET);
 
+            console.log('Token decodificado:', decoded);
         
             if (requiredRole && decoded.role !== requiredRole) {
                 return res.status(403).json({ 
@@ -40,15 +41,19 @@ const securityMiddleware = (requiredRole?: string) => {
             }
 
 
-            req.headers['x-user-id'] = decoded.id;
+            req.headers['x-user-id'] = decoded.sub || decoded.id;
             req.headers['x-user-role'] = decoded.role;
 
             next();
         } catch (error) {
+            console.log('Token inválido:', error);
             return res.status(403).json({ message: 'API Gateway: Token rejeitado.' });
         }
     };
 };
+
+// Protege rota específica que requer ADMIN antes do proxy genérico
+app.use('/auth/sign-up/teacher', securityMiddleware('ADMIN'));
 
 app.use('/auth', createProxyMiddleware({
     target: SERVICE_REGISTRY.AUTH_SERVICE,
