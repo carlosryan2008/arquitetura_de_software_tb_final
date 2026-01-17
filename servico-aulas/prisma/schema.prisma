@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Lesson {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  moduleId    String   @db.Uuid
+  name        String
+  description String?
+  url         String   // URL do YouTube
+  duration    Int      // Duração em minutos
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("lessons")
+}
+
+model LiveSession {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  moduleId    String   @db.Uuid
+  name        String
+  description String?
+  link        String   // Link do Google Meet
+  duration    Int      // Duração em minutos
+  scheduledAt DateTime // Data e hora agendada
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("live_sessions")
+}
+
