@@ -17,3 +17,30 @@ services:
       - ./servico-catalogo-cursos/.env
     ports:
       - "5433:5432"
+
+  postgres_conteudo:
+    image: postgres:latest
+    container_name: service_conteudo_db
+    restart: always
+    env_file:
+      - ./servico-conteudo-aulas/.env
+    ports:
+      - "5434:5432"
+
+  postgres_matriculas:
+    image: postgres:latest
+    container_name: service_matriculas_db
+    restart: always
+    env_file:
+      - ./servico-matriculas/.env
+    ports:
+      - "5435:5432"
+
+  postgres_atividades:
+    image: postgres:latest
+    container_name: service_atividades_db
+    restart: always
+    env_file:
+      - ./servico-atividades/.env
+    ports:
+      - "5436:5432"
