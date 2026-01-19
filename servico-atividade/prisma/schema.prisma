@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Fóruns e Discussões
+model Forum {
+  id          String   @id @default(uuid()) @db.Uuid
+  courseId    String   @db.Uuid
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  topics      Topic[]
+
+  @@map("forums")
+}
+
+model Topic {
+  id          String   @id @default(uuid()) @db.Uuid
+  forumId     String   @db.Uuid
+  userId      String   @db.Uuid
+  title       String
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  forum       Forum    @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  posts       Post[]
+
+  @@map("topics")
+}
+
+model Post {
+  id          String   @id @default(uuid()) @db.Uuid
+  topicId     String   @db.Uuid
+  userId     String   @db.Uuid
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@map("posts")
+}
+
+// Mensagens Privadas
+model PrivateMessage {
+  id          String   @id @default(uuid()) @db.Uuid
+  senderId    String   @db.Uuid
+  receiverId  String   @db.Uuid
+  courseId    String?  @db.Uuid
+  subject     String?
+  content     String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("private_messages")
+}
+
+// Avaliações
+enum QuestionType {
+  OBJECTIVE  // Múltipla escolha
+  ESSAY     // Dissertativa
+}
+
+enum SubmissionStatus {
+  PENDING
+  GRADED
+  RETURNED
+}
+
+model Assessment {
+  id          String    @id @default(uuid()) @db.Uuid
+  courseId    String    @db.Uuid
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  questions   Question[]
+  submissions Submission[]
+
+  @@map("assessments")
+}
+
+model Question {
+  id            String       @id @default(uuid()) @db.Uuid
+  assessmentId String       @db.Uuid
+  type          QuestionType
+  question      String
+  options       String[]     // Para questões objetivas: ["A", "B", "C", "D"]
+  correctAnswer String?      // Para questões objetivas: "A"
+  points        Float
+  order         Int
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  assessment    Assessment   @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  submissions   Submission[]
+
+  @@map("questions")
+}
+
+model Submission {
+  id            String          @id @default(uuid()) @db.Uuid
+  assessmentId String          @db.Uuid
+  userId        String          @db.Uuid
+  status        SubmissionStatus @default(PENDING)
+  submittedAt   DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  assessment    Assessment      @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  answers       SubmissionAnswer[]
+  grade         Grade?
+
+  @@map("submissions")
+}
+
+model SubmissionAnswer {
+  id          String     @id @default(uuid()) @db.Uuid
+  submissionId String    @db.Uuid
+  questionId   String    @db.Uuid
+  answer       String    // Resposta do aluno
+  createdAt   DateTime  @default(now())
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question     Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, questionId])
+  @@map("submission_answers")
+}
+
+model Grade {
+  id            String   @id @default(uuid()) @db.Uuid
+  submissionId  String   @unique @db.Uuid
+  totalScore    Float
+  maxScore      Float
+  percentage    Float
+  feedback      String?
+  gradedAt      DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  submission    Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@map("grades")
+}
+
